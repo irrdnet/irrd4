@@ -402,7 +402,6 @@ class DatabaseHandler:
         if not self._rpsl_upsert_buffer:
             return
 
-        logger.info(f'Flushing {len(self._rpsl_upsert_buffer)} objects')
         rpsl_composite_key = ['rpsl_pk', 'source']
         stmt = pg.insert(RPSLDatabaseObject).values([x[0] for x in self._rpsl_upsert_buffer])
 
@@ -434,7 +433,6 @@ class DatabaseHandler:
             scope_acceptable = obj['scopefilter_status'] == ScopeFilterStatus.in_scope
 
             if rpki_acceptable and scope_acceptable:
-                logger.info(f'Flushing {obj["rpsl_pk"]} into tracker')
                 self.status_tracker.record_operation(
                     operation=DatabaseOperation.add_or_update,
                     rpsl_pk=obj['rpsl_pk'],
@@ -617,7 +615,6 @@ class DatabaseStatusTracker:
         """
         self._sources_seen.add(source)
         if self.journaling_enabled and get_setting(f'sources.{source}.keep_journal'):
-            logger.info(f'Record operation active for {source}/{source_serial}/{operation}/{rpsl_pk}')
             serial_nrtm: Union[int, sa.sql.expression.Select]
             journal_tablename = RPSLDatabaseJournal.__tablename__
 
@@ -648,7 +645,6 @@ class DatabaseStatusTracker:
                 'operation': operation.value,
                 'object_text': object_text,
             }, ensure_ascii=False).encode('utf-8')
-            logger.info(f'Sending redis message {r}: {message}')
             r.publish('irrd-nrtm', message)
 
 
