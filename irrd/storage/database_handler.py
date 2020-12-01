@@ -640,12 +640,13 @@ class DatabaseStatusTracker:
             self._new_serials_per_source[source].add(inserted_serial)
 
             r = redis.Redis.from_url(get_setting('redis_url'))
-            r.publish('irrd-nrtm', ujson.encode({
+            message = ujson.encode({
                 'serial': inserted_serial,
                 'operation': operation.value,
                 'object_text': object_text,
-
-            }, ensure_ascii=False).encode('utf-8'))
+            }, ensure_ascii=False).encode('utf-8')
+            logger.info(f'Redis message {r}: {message}')
+            r.publish('irrd-nrtm', message)
 
 
     def finalise_transaction(self):
