@@ -642,7 +642,7 @@ class DatabaseStatusTracker:
             r = redis.Redis.from_url(get_setting('redis_url'))
             r.publish('irrd-nrtm', ujson.encode({
                 'serial': inserted_serial,
-                'operation': operation,
+                'operation': operation.value,
                 'object_text': object_text,
 
             }, ensure_ascii=False).encode('utf-8'))
