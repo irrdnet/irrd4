@@ -5,7 +5,9 @@ from functools import lru_cache
 from io import StringIO
 from typing import List, Set, Dict, Any, Tuple, Iterator, Union, Optional
 
+import redis
 import sqlalchemy as sa
+import ujson
 from sqlalchemy.dialects import postgresql as pg
 
 from irrd.conf import get_setting
@@ -636,6 +638,15 @@ class DatabaseStatusTracker:
             insert_result = self.database_handler.execute_statement(stmt)
             inserted_serial = insert_result.fetchone()['serial_nrtm']
             self._new_serials_per_source[source].add(inserted_serial)
+
+            r = redis.Redis.from_url(get_setting('redis_url'))
+            r.publish('irrd-nrtm', ujson.encode({
+                'serial': inserted_serial,
+                'operation': operation,
+                'object_text': object_text,
+
+            }, ensure_ascii=False).encode('utf-8'))
+
 
     def finalise_transaction(self):
         """
