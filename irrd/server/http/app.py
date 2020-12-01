@@ -1,11 +1,13 @@
+import asyncio
 import os
 
 from ariadne.asgi import GraphQL
 from setproctitle import setproctitle
 from starlette.applications import Starlette
-from starlette.endpoints import HTTPEndpoint
+from starlette.endpoints import HTTPEndpoint, WebSocketEndpoint
 from starlette.responses import PlainTextResponse
 from starlette.routing import Mount
+from starlette.websockets import WebSocket
 
 from irrd.server.access_check import is_client_permitted
 from irrd.server.graphql import ENV_UVICORN_WORKER_CONFIG_PATH
@@ -41,6 +43,17 @@ graphql = GraphQL(
 )
 
 
+class NRTM(WebSocketEndpoint):
+    async def on_connect(self, websocket):
+        await websocket.accept()
+        count = 0
+        while True:
+            await websocket.send_text(f'Hello, world {count}')
+            await asyncio.sleep(0.5)
+            count += 1
+        await websocket.close()
+
+
 class StatusApp(HTTPEndpoint):
     def get(self, request):
         if not is_client_permitted(request.client.host, 'server.http.status_access_list'):
@@ -53,6 +66,7 @@ class StatusApp(HTTPEndpoint):
 routes = [
     Mount("/v1/status", StatusApp),
     Mount("/graphql", graphql),
+    Mount("/ws", NRTM),
 ]
 
 app = Starlette(
