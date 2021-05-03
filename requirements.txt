@@ -41,12 +41,12 @@ python-graphql-client==0.4.2
 
 # Documentation generation
 Sphinx==3.5.4
-sphinxcontrib-spelling==7.1.0
+sphinxcontrib-spelling==7.2.1
 sphinx-material==0.0.32
 
 # Code style and type checks
 mypy==0.812; platform_python_implementation == "CPython"
-flake8==3.9.0
+flake8==3.9.1
 pep8-naming==0.11.1
 
 # Creating python packages
